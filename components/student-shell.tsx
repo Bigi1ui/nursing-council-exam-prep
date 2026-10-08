@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import type { Profile } from "@/lib/auth/session";
+import { BrandMark } from "@/components/brand-mark";
 import { StudentSidebar } from "@/components/student-sidebar";
 import { LogoutButton } from "@/components/logout-button";
 
@@ -29,7 +30,7 @@ export function StudentShell({ children, profile, preview = false }: { children:
       <div className="min-w-0">
         <header className="flex h-[64px] items-center justify-between border-b border-[#e5ecf3] bg-white px-5 sm:px-8">
           <div className="flex items-center gap-3">
-            <Link className="mobile-menu-button text-sm font-bold text-[#1d3551] no-underline" href={preview ? "/admin/dashboard" : "/student/dashboard"}>NursePrep</Link>
+            <Link className="mobile-menu-button flex items-center gap-2 text-sm font-bold text-[#1d3551] no-underline" href={preview ? "/admin/dashboard" : "/student/dashboard"}><BrandMark size={24} />NursePrep</Link>
             <span className="hidden text-[11px] text-[#8190a3] sm:inline">{preview ? "Student preview" : "Student workspace"}</span>
           </div>
           <div className="flex items-center gap-3">

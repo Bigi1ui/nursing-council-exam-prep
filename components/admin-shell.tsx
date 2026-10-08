@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import type { Profile } from "@/lib/auth/session";
+import { BrandMark } from "@/components/brand-mark";
 import { LogoutButton } from "@/components/logout-button";
 
 const adminLinks = [
@@ -41,7 +42,7 @@ export function AdminShell({ children, profile }: { children: React.ReactNode; p
   return (
     <div className="app-grid">
       <aside className="app-sidebar flex min-h-screen flex-col bg-[#102845] px-3 py-5 text-white">
-        <Link href="/admin/dashboard" className="mb-8 flex items-center gap-2 px-2 text-white no-underline"><span className="grid size-8 place-items-center rounded-md bg-white/10">✚</span><span className="sidebar-brand-name text-[14px] font-bold">NursePrep</span></Link>
+        <Link href="/admin/dashboard" className="mb-8 flex items-center gap-2 px-2 text-white no-underline"><BrandMark size={32} className="rounded-md" /><span className="sidebar-brand-name text-[14px] font-bold">NursePrep</span></Link>
         <p className="sidebar-section-label mb-2 px-3 text-[9px] font-bold uppercase tracking-[.16em] text-[#849bb5]">Administration</p>
         <Suspense fallback={<div className="flex flex-col gap-1">{adminLinks.map(([label, href, glyph]) => <Link key={href} href={href} className="nav-link"><span className="grid w-4 place-items-center">{glyph}</span><span className="nav-label">{adminLabel(label)}</span></Link>)}</div>}><AdminNavigation /></Suspense>
         <Link href="/student-preview" className="mt-auto rounded-md border border-white/10 p-3 text-center text-[10px] font-semibold text-[#ced9e6] no-underline">← <span className="sidebar-footer-copy">Student preview</span></Link>

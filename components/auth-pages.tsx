@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { BrandMark } from "@/components/brand-mark";
 import { Panel } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 
@@ -385,7 +386,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
     <main className="grid min-h-screen bg-[#f3f7fb] lg:grid-cols-[minmax(0,1fr)_minmax(390px,.8fr)]">
       <section className="relative hidden flex-col justify-between overflow-hidden bg-[#112b47] p-10 text-white lg:flex">
         <Link href="/" className="flex items-center gap-2 text-[14px] font-bold text-white no-underline">
-          <span className="grid size-8 place-items-center rounded bg-white/10 text-[11px]">NP</span>
+          <BrandMark size={32} className="rounded" />
           NursePrep
         </Link>
         <div className="relative z-[1] max-w-[480px] pb-16">
@@ -402,7 +403,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
       <section className="flex items-center justify-center px-5 py-10">
         <Panel className="w-full max-w-[430px] p-6 sm:p-8">
           <Link href="/" className="flex items-center justify-center gap-2 text-[14px] font-bold text-[#263f58] no-underline lg:hidden">
-            <span className="grid size-7 place-items-center rounded bg-[#e8f6f2] text-[10px] text-[#16866c]">NP</span>
+            <BrandMark size={28} className="rounded" />
             NursePrep
           </Link>
           <div className="mb-6 mt-5 text-center">

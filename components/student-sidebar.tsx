@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { LogoutButton } from "@/components/logout-button";
 
 const links = [
@@ -17,7 +18,7 @@ export function StudentSidebar({ activePath }: { activePath: string }) {
   return (
     <aside className="app-sidebar flex min-h-screen flex-col bg-[#102845] px-3 py-5 text-white">
       <Link href="/student/dashboard" className="mb-8 flex items-center gap-2 px-2 text-white no-underline">
-        <span className="grid size-8 place-items-center rounded-md bg-white/10 text-base">✚</span>
+        <BrandMark size={32} className="rounded-md" />
         <span className="sidebar-brand-name text-[14px] font-bold tracking-[-.02em]">NursePrep</span>
       </Link>
       <p className="sidebar-section-label mb-2 px-3 text-[9px] font-bold uppercase tracking-[.16em] text-[#849bb5]">Study space</p>

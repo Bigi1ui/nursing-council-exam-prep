@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { savePracticeAnswer, finishPracticeSession, type PracticeSessionData, type SavedPracticeAnswer } from "@/lib/actions/practice";
 import { PageHeading, Panel, Tag } from "@/components/ui";
 
@@ -212,7 +213,7 @@ export function PracticeSession({ session, error }: { session: PracticeSessionDa
   return (
     <div className="-mx-3 -mt-3 min-h-[calc(100vh-64px)] rounded-lg bg-[#eff4f8] p-3 sm:-mx-5 sm:-mt-5 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-[#102845] px-4 py-3 text-white">
-        <div><p className="m-0 text-[12px] font-bold">NursePrep <span className="font-normal text-[#a8bdd3]">/ Practice session</span></p><p className="mb-0 mt-1 text-[10px] text-[#a8bdd3]">{session.questionSet} - {session.questions.length} saved questions</p></div>
+        <div className="flex items-center gap-2"><BrandMark size={24} /><div><p className="m-0 text-[12px] font-bold">NursePrep <span className="font-normal text-[#a8bdd3]">/ Practice session</span></p><p className="mb-0 mt-1 text-[10px] text-[#a8bdd3]">{session.questionSet} - {session.questions.length} saved questions</p></div></div>
         <div className="flex items-center gap-3">
           <Tag tone={pendingSaveCount > 0 ? "orange" : "green"}>{pendingSaveCount > 0 ? "Saving answers..." : "Autosaves answers"}</Tag>
           {remainingSeconds !== null && <div aria-live="polite" className={`min-w-[84px] rounded border px-3 py-2 text-center font-mono text-[14px] font-bold tabular-nums ${remainingSeconds <= 300 ? "border-[#f3a4a4] bg-[#7f3037] text-white" : "border-[#7890aa] bg-[#1b3856] text-white"}`}>{formatDuration(remainingSeconds)}</div>}

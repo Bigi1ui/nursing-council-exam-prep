@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { PageHeading, Panel } from "@/components/ui";
 
 export function InfoPage({ title, body }: { title: string; body: string }) {
   return (
     <main className="min-h-screen bg-[#f3f7fb]">
       <header className="flex h-16 items-center justify-between border-b border-[#e3eaf1] bg-white px-5 sm:px-10">
-        <Link href="/" className="text-[14px] font-bold text-[#213a54] no-underline">
+        <Link href="/" className="flex items-center gap-2 text-[14px] font-bold text-[#213a54] no-underline">
+          <BrandMark size={28} />
           NursePrep
         </Link>
         <Link href="/login" className="text-[11px] font-semibold text-[#4e61c5] no-underline">

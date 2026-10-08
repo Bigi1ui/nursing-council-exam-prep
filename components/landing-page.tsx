@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { Panel } from "@/components/ui";
 
 const platformFeatures = [
@@ -48,7 +49,7 @@ export function LandingPage() {
     <main className="min-h-screen bg-[#f3f7fb]">
       <header className="absolute inset-x-0 top-0 z-10 flex h-[72px] items-center justify-between px-5 text-white sm:px-10 lg:px-16">
         <Link href="/" className="flex items-center gap-2 text-[15px] font-bold text-white no-underline">
-          <span className="grid size-8 place-items-center rounded bg-white/15 text-[11px]">NP</span>
+          <BrandMark size={32} className="rounded" />
           NursePrep
         </Link>
         <nav className="hidden items-center gap-7 text-[11px] font-semibold sm:flex" aria-label="Public navigation">
