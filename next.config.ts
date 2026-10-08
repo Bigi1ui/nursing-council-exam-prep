@@ -4,7 +4,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
   },
+  serverExternalPackages: ["pdfjs-dist"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

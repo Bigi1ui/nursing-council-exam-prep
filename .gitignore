@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# source archive is kept locally; only this bundled importer source is tracked
+/public/PASt question/*
+!/public/PASt question/Principles of management exams.txt
