@@ -47,6 +47,10 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     .single();
 
   if (profileError) {
+    if (profileError.code === "PGRST116") {
+      return null;
+    }
+
     throw new Error(`Unable to load authenticated profile: ${profileError.message}`);
   }
 

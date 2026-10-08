@@ -56,10 +56,10 @@ export function LandingPage() {
           <Link href="/" className="text-white no-underline">Home</Link>
           <Link href="/about" className="text-white/90 no-underline">About</Link>
           <Link href="/contact" className="text-white/90 no-underline">Contact</Link>
-          <Link href="/student/dashboard" className="rounded border border-white/50 px-4 py-2 text-white no-underline">Login</Link>
+          <Link href="/login" className="rounded border border-white/50 px-4 py-2 text-white no-underline">Login</Link>
           <Link href="/register" className="rounded bg-[#5548e8] px-4 py-2 text-white no-underline">Create Account</Link>
         </nav>
-        <Link href="/student/dashboard" className="text-[11px] font-semibold text-white no-underline sm:hidden">Login</Link>
+        <Link href="/login" className="text-[11px] font-semibold text-white no-underline sm:hidden">Login</Link>
       </header>
 
       <section
@@ -81,7 +81,7 @@ export function LandingPage() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/student/practice" className="primary-button min-h-11">Start Practicing</Link>
-            <Link href="/student/dashboard" className="inline-flex min-h-11 items-center rounded border border-white/50 px-5 text-[12px] font-semibold text-white no-underline">Login</Link>
+            <Link href="/login" className="inline-flex min-h-11 items-center rounded border border-white/50 px-5 text-[12px] font-semibold text-white no-underline">Login</Link>
             <Link href="/register" className="secondary-button min-h-11 border-white/60 bg-white/10 text-white">Create Account</Link>
           </div>
           <p className="mt-7 max-w-[560px] rounded border border-white/15 bg-white/10 px-4 py-3 text-[11px] leading-5 text-white/76">
@@ -134,7 +134,7 @@ export function LandingPage() {
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/register" className="primary-button">Create Account</Link>
-            <Link href="/student/dashboard" className="secondary-button">Login</Link>
+            <Link href="/login" className="secondary-button">Login</Link>
           </div>
         </Panel>
         <Panel className="border-[#dcece8] bg-[#f7fffc] p-6">
