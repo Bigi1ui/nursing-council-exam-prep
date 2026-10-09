@@ -17,7 +17,7 @@ const questionSets: { label: string; value: PracticeSettings["questionSet"] }[] 
   { label: "All questions", value: "all" },
   { label: "Random questions", value: "random" },
   { label: "Weak areas", value: "weak" },
-  { label: "Previous mistakes", value: "mistakes" },
+  { label: "Previously missed", value: "mistakes" },
   { label: "Bookmarked questions", value: "bookmarks" },
 ];
 

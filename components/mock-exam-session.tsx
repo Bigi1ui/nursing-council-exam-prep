@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/brand-mark";
 import { finishMockExam, saveMockExamAnswer, type MockExamAnswer, type MockExamSessionData } from "@/lib/actions/mock-exam";
+import { claimAttemptReviewXp } from "@/lib/actions/gamification";
 import { PageHeading, Panel, Tag } from "@/components/ui";
 
 export function MockExamSession({ session, error }: { session: MockExamSessionData | null; error?: string }) {
@@ -16,6 +17,8 @@ export function MockExamSession({ session, error }: { session: MockExamSessionDa
   const [complete, setComplete] = useState(session?.status === "completed");
   const [result, setResult] = useState(session?.result ?? null);
   const [message, setMessage] = useState(error ?? "");
+  const [reviewMessage, setReviewMessage] = useState("");
+  const [isClaimingReviewXp, setIsClaimingReviewXp] = useState(false);
   const saveVersions = useRef<Record<string, number>>({});
   const finishStarted = useRef(false);
   const finishHandler = useRef<() => Promise<void>>(async () => {});
@@ -57,6 +60,14 @@ export function MockExamSession({ session, error }: { session: MockExamSessionDa
     } finally {
       setIsFinishing(false);
     }
+  }
+
+  async function claimReviewReward() {
+    if (!session || isClaimingReviewXp || reviewMessage) return;
+    setIsClaimingReviewXp(true);
+    const response = await claimAttemptReviewXp(session.id);
+    setIsClaimingReviewXp(false);
+    setReviewMessage("error" in response ? response.error ?? "Could not record this review." : response.xpEarned ? "Review complete: 5 XP earned." : "This review was already claimed or today’s repeatable XP limit was reached.");
   }
 
   useEffect(() => {
@@ -144,7 +155,7 @@ export function MockExamSession({ session, error }: { session: MockExamSessionDa
     const percentage = result?.questionCount ? Math.round((result.correctCount / result.questionCount) * 100) : 0;
     return (
       <>
-        <PageHeading eyebrow="Exam submitted" title="Mock exam result" description={`${result?.correctCount ?? 0} correct out of ${result?.questionCount ?? session.questions.length}`} />
+        <PageHeading eyebrow="Exam submitted" title={session.sessionName} description={`${result?.correctCount ?? 0} correct out of ${result?.questionCount ?? session.questions.length}${session.completedAt ? ` · Completed ${new Date(session.completedAt).toLocaleString()}` : ""}`} />
         <Panel className="max-w-[640px] p-5 sm:p-7">
           <div className="grid grid-cols-3 gap-3 text-center">
             <ResultValue label="Score" value={`${percentage}%`} />
@@ -156,9 +167,12 @@ export function MockExamSession({ session, error }: { session: MockExamSessionDa
             {session.completedAt && <p className="mb-0 mt-2">Submitted {new Date(session.completedAt).toLocaleString()}</p>}
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href="/student/mistakes" className="primary-button">Review mistakes</Link>
+            <Link href={`/student/solutions/${session.id}`} className="primary-button">Open saved solutions</Link>
+            <Link href="/student/solutions" className="secondary-button">All solutions</Link>
             <Link href="/student/mock-exam" className="secondary-button">Back to mock exams</Link>
+            {(result?.correctCount ?? 0) < (result?.answeredCount ?? 0) && <button type="button" onClick={() => void claimReviewReward()} disabled={isClaimingReviewXp || Boolean(reviewMessage)} className="secondary-button disabled:opacity-60">{isClaimingReviewXp ? "Recording review..." : "Mark review complete · +5 XP"}</button>}
           </div>
+          {reviewMessage && <p role="status" className="mb-0 mt-3 text-[11px] text-[#52766d]">{reviewMessage}</p>}
         </Panel>
       </>
     );

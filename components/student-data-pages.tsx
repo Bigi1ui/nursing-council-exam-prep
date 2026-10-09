@@ -2,9 +2,11 @@ import Link from "next/link";
 import type { Profile } from "@/lib/auth/session";
 import type { MockExamResultSummary } from "@/lib/actions/mock-exam";
 import type { StudentMistake, StudentPracticeSummary } from "@/lib/actions/practice";
+import type { StudentGamificationSummary } from "@/lib/actions/gamification";
 import { PageHeading, Panel, ProgressBar, Tag } from "@/components/ui";
+import { AchievementGrid, ReadinessPanel, XpLevelPanel } from "@/components/gamification-panels";
 
-export function ProgressPage({ summary, error }: { summary: StudentPracticeSummary | null; error?: string }) {
+export function ProgressPage({ summary, error, gamification, gamificationError }: { summary: StudentPracticeSummary | null; error?: string; gamification: StudentGamificationSummary | null; gamificationError?: string }) {
   return (
     <>
       <PageHeading eyebrow="Your learning journey" title="Progress" description="These figures come from answers and sessions saved to your account. Readiness is not a probability of passing the real exam." />
@@ -21,12 +23,9 @@ export function ProgressPage({ summary, error }: { summary: StudentPracticeSumma
           <p className="eyebrow mb-1">Saved answers</p><h2 className="section-title m-0">Accuracy by course</h2>
           {summary?.coursePerformance.length ? <div className="mt-5 flex flex-col gap-4">{summary.coursePerformance.map((course) => <div key={course.courseName} className="course-row"><span className="truncate text-[11px] text-[#43586e]">{course.courseName}</span><ProgressBar value={course.accuracy} color={course.accuracy < 60 ? "#ed8e88" : undefined} /><span className="text-right text-[11px] font-bold text-[#40566d]">{course.accuracy}%</span></div>)}</div> : <EmptyNotice title="No course results yet" body="Complete practice questions to see real course accuracy." />}
         </Panel>
-        <Panel className="p-5">
-          <p className="eyebrow mb-1">Not calculated yet</p><h2 className="section-title m-0">Exam readiness</h2>
-          <p className="mt-3 text-[12px] leading-6 text-[#718398]">A preparation indicator will be calculated after a study plan and readiness model are defined. It will describe preparation progress, not predict a real exam result.</p>
-          <div className="mt-4 rounded bg-[#edf6f3] p-3 text-[11px] text-[#52766d]">Current streak: {summary?.studyStreak.currentStreak ?? 0} days · Best streak: {summary?.studyStreak.longestStreak ?? 0} days</div>
-        </Panel>
+        {gamification ? <ReadinessPanel readiness={gamification.readiness} history={gamification.readinessHistory} /> : <Panel className="p-5"><EmptyNotice title="Readiness unavailable" body={gamificationError ?? "Study rewards could not be loaded."} /></Panel>}
       </div>
+      {gamification && <div className="mt-3"><XpLevelPanel summary={gamification} /></div>}
       <Panel className="mt-3 p-5">
         <div className="mb-3 flex items-center justify-between"><div><p className="eyebrow mb-1">From your account</p><h2 className="section-title m-0">Recent practice sessions</h2></div><Link href="/student/practice" className="text-[11px] font-semibold text-[#4565ce] no-underline">Practice →</Link></div>
         {summary?.recentSessions.length ? <div className="divide-y divide-[#edf1f5]">{summary.recentSessions.map((session) => <div key={session.id} className="flex justify-between gap-3 py-3 text-[11px]"><span className="capitalize text-[#465c72]">{session.questionSet} · {session.questionCount} questions</span><Tag tone={session.status === "completed" ? "green" : "blue"}>{session.status}</Tag></div>)}</div> : <EmptyNotice title="No sessions yet" body="Your completed practice sessions will be listed here." />}
@@ -89,8 +88,15 @@ export function MistakesPage({ mistakes, error }: { mistakes: StudentMistake[]; 
   </>;
 }
 
-export function AchievementsPage() {
-  return <><PageHeading eyebrow="Study milestones" title="Achievements" description="Milestones will appear when the study-streak and XP systems are connected." /><Panel className="max-w-[720px] p-5"><EmptyNotice title="No achievements recorded yet" body="Achievements are not generated from sample data. They will appear after meaningful study activity is connected to the gamification backend." /></Panel></>;
+export function AchievementsPage({ summary, error }: { summary: StudentGamificationSummary | null; error?: string }) {
+  return <>
+    <PageHeading eyebrow="Study milestones" title="Achievements" description="Badges unlock automatically from verified study activity and remain on your profile once earned." />
+    {error && <ErrorNotice message={error} />}
+    {summary ? <>
+      <div className="mb-3"><XpLevelPanel summary={summary} /></div>
+      <AchievementGrid summary={summary} />
+    </> : <Panel className="max-w-[720px] p-5"><EmptyNotice title="Achievements unavailable" body="Study rewards could not be loaded." /></Panel>}
+  </>;
 }
 
 export function ProfilePage({ profile }: { profile: Profile }) {
@@ -106,13 +112,13 @@ export function ResultsPage({ results, error }: { results: MockExamResultSummary
       {results.length ? <div className="flex max-w-[900px] flex-col gap-3">{results.map((result) => (
         <Panel key={result.id} className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
           <div>
-            <div className="flex flex-wrap items-center gap-2"><h2 className="m-0 text-[13px] font-bold text-[#2b4158]">Full question bank</h2><Tag tone={result.status === "completed" ? "green" : "blue"}>{result.status === "completed" ? "Completed" : "In progress"}</Tag></div>
+            <div className="flex flex-wrap items-center gap-2"><h2 className="m-0 text-[13px] font-bold text-[#2b4158]">{result.sessionName}</h2><Tag tone={result.status === "completed" ? "green" : "blue"}>{result.status === "completed" ? "Completed" : "In progress"}</Tag></div>
             <p className="mb-0 mt-2 text-[10px] text-[#8190a1]">{result.questionCount} questions · {Math.round(result.timeLimitSeconds / 60)} minutes · Started {new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(result.startedAt))}</p>
             {result.status === "completed" && <p className="mb-0 mt-2 text-[11px] text-[#5f7287]">{result.correctCount} correct · {result.answeredCount}/{result.questionCount} answered{result.completedAt ? ` · Submitted ${new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(result.completedAt))}` : ""}</p>}
           </div>
           <div className="flex items-center gap-3">
             {result.scorePercent !== null && <strong className="text-[18px] text-[#1f6559]">{result.scorePercent}%</strong>}
-            <Link href={`/student/mock-exam/${result.id}`} className="secondary-button">{result.status === "completed" ? "View result" : "Resume"}</Link>
+            <Link href={result.status === "completed" ? `/student/solutions/${result.id}` : `/student/mock-exam/${result.id}`} className="secondary-button">{result.status === "completed" ? "View solutions" : "Resume"}</Link>
           </div>
         </Panel>
       ))}</div> : <Panel className="max-w-[720px] p-5"><EmptyNotice title="No mock attempts yet" body="Completed and in-progress mock exams will appear here." /><Link href="/student/mock-exam" className="primary-button mt-4">Start mock exam</Link></Panel>}

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isRememberedSession, rememberSessionCookieName, sessionCookieOptions } from "@/lib/supabase/session-cookie";
 
 function copyResponseCookies(from: NextResponse, to: NextResponse) {
   from.cookies.getAll().forEach((cookie) => {
@@ -9,6 +10,7 @@ function copyResponseCookies(from: NextResponse, to: NextResponse) {
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const remember = isRememberedSession(request.cookies.get(rememberSessionCookieName)?.value);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,7 +28,7 @@ export async function updateSession(request: NextRequest) {
           response = NextResponse.next({ request });
 
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
+            response.cookies.set(name, value, sessionCookieOptions(options, remember));
           });
 
           Object.entries(headers).forEach(([key, value]) => {

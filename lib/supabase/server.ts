@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isRememberedSession, rememberSessionCookieName, sessionCookieOptions } from "@/lib/supabase/session-cookie";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -13,9 +14,10 @@ export async function createClient() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
+          const remember = isRememberedSession(cookieStore.get(rememberSessionCookieName)?.value);
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, sessionCookieOptions(options, remember));
             });
           } catch {
             // Server Components cannot always write cookies. The proxy refreshes

@@ -33,6 +33,7 @@ export type SavedPracticeAnswer = {
 };
 export type PracticeSessionData = {
   id: string;
+  sessionName: string;
   questionCount: number;
   questionSet: PracticeSettings["questionSet"];
   status: "in_progress" | "completed" | "abandoned";
@@ -771,21 +772,15 @@ export async function startPracticeSession(settings: PracticeSettings) {
   }
 
   const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5).slice(0, settings.count);
-  const { data: session, error: sessionError } = await supabase
-    .from("practice_sessions")
-    .insert({
-      student_id: auth.userId,
-      course_id: settings.courseId,
-      question_set: settings.questionSet,
-      question_count: shuffled.length,
-      question_ids: shuffled.map((question) => question.id),
-      time_limit_seconds: settings.timeLimitSeconds,
-    })
-    .select("id")
-    .single();
+  const { data: sessionId, error: sessionError } = await supabase.rpc("start_practice_session", {
+    p_course_id: settings.courseId,
+    p_question_set: settings.questionSet,
+    p_question_ids: shuffled.map((question) => question.id),
+    p_time_limit_seconds: settings.timeLimitSeconds,
+  });
 
-  if (sessionError || !session) return { error: `Could not start practice: ${sessionError?.message ?? "unknown error"}` };
-  return { sessionId: session.id };
+  if (sessionError || typeof sessionId !== "string") return { error: `Could not start practice: ${sessionError?.message ?? "unknown error"}` };
+  return { sessionId };
 }
 
 export async function getPracticeSession(sessionId: string) {
@@ -795,7 +790,7 @@ export async function getPracticeSession(sessionId: string) {
   const supabase = await createClient();
   const { data: session, error: sessionError } = await supabase
     .from("practice_sessions")
-    .select("id,question_ids,question_count,question_set,status,started_at,completed_at,time_limit_seconds")
+    .select("id,session_name,question_ids,question_count,question_set,status,started_at,completed_at,time_limit_seconds")
     .eq("id", sessionId)
     .single();
   if (sessionError || !session) return { error: `Could not load practice session: ${sessionError?.message ?? "not found"}` };
@@ -846,6 +841,7 @@ export async function getPracticeSession(sessionId: string) {
   }));
   const sessionData: PracticeSessionData = {
       id: session.id,
+      sessionName: session.session_name,
       questionCount: session.question_count,
       questionSet: session.question_set,
       status: sessionStatus,

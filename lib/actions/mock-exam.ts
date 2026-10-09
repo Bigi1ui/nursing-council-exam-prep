@@ -19,6 +19,7 @@ export type MockExamAnswer = {
 
 export type MockExamSessionData = {
   id: string;
+  sessionName: string;
   status: "in_progress" | "completed";
   startedAt: string;
   completedAt: string | null;
@@ -37,6 +38,7 @@ type FinishMockExamRow = {
 
 export type MockExamResultSummary = {
   id: string;
+  sessionName: string;
   status: "in_progress" | "completed";
   questionCount: number;
   timeLimitSeconds: number;
@@ -126,7 +128,7 @@ export async function getMockExamSession(sessionId: string): Promise<{ session?:
   const supabase = await createClient();
   const { data: session, error: sessionError } = await supabase
     .from("practice_sessions")
-    .select("id,question_ids,question_count,question_set,status,started_at,completed_at,time_limit_seconds")
+    .select("id,session_name,question_ids,question_count,question_set,status,started_at,completed_at,time_limit_seconds")
     .eq("id", sessionId)
     .maybeSingle();
 
@@ -187,6 +189,7 @@ export async function getMockExamSession(sessionId: string): Promise<{ session?:
   return {
     session: {
       id: session.id,
+      sessionName: session.session_name,
       status,
       startedAt: session.started_at,
       completedAt,
@@ -205,7 +208,7 @@ export async function getMockExamResults(): Promise<{ results?: MockExamResultSu
   const supabase = await createClient();
   const { data: sessions, error: sessionError } = await supabase
     .from("practice_sessions")
-    .select("id,question_count,status,started_at,completed_at,time_limit_seconds")
+    .select("id,session_name,question_count,status,started_at,completed_at,time_limit_seconds")
     .eq("student_id", auth.userId)
     .eq("question_set", "mock_exam")
     .order("started_at", { ascending: false });
@@ -235,6 +238,7 @@ export async function getMockExamResults(): Promise<{ results?: MockExamResultSu
       const isCompleted = session.status === "completed";
       return {
         id: session.id,
+        sessionName: session.session_name,
         status: session.status as MockExamResultSummary["status"],
         questionCount: session.question_count,
         timeLimitSeconds: session.time_limit_seconds ?? 0,

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type FormEvent, type ReactNode, useState, useSyncExternalStore } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
-import { Panel } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { getRememberPreference, setRememberPreference, subscribeRememberPreference } from "@/lib/supabase/session-cookie";
 
 type AuthMode = "login" | "register" | "forgot" | "reset";
 type Role = "student" | "admin";
@@ -17,15 +18,6 @@ type SupabaseLookupError = {
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const minPasswordLength = 8;
-
-function authCopy(mode: AuthMode) {
-  return {
-    login: ["Welcome back", "Log in to continue your exam preparation."],
-    register: ["Create your account", "Set up your student study space."],
-    forgot: ["Reset your password", "Enter your email and we will send reset instructions."],
-    reset: ["Choose a new password", "Create a new password for your account."],
-  }[mode];
-}
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -110,11 +102,11 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const rememberMe = useSyncExternalStore(subscribeRememberPreference, getRememberPreference, () => true);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<MessageTone>("info");
   const [fieldError, setFieldError] = useState<Record<string, string>>({});
-  const [heading, description] = authCopy(mode);
 
   function showMessage(nextMessage: string, tone: MessageTone) {
     setMessage(nextMessage);
@@ -191,7 +183,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
     showMessage("Signing you in...", "info");
 
     try {
-      const supabase = createClient();
+      const supabase = createClient(rememberMe);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -401,13 +393,13 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
                 <Field label="Password" type="password" value={password} onChange={setPassword} error={fieldError.password} autoComplete="current-password" placeholder="Enter your password" icon="🔒" />
                 <div className="mt-1 flex items-center justify-between gap-3 text-[11px] text-[#60768c]">
                   <label className="flex items-center gap-2">
-                    <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#cfe0ed] accent-[#1ba98a]" />
+                    <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberPreference(event.target.checked)} className="h-3.5 w-3.5 rounded border-[#cfe0ed] accent-[#1ba98a]" />
                     <span>Remember me</span>
                   </label>
                   <Link href="/forgot-password" className="font-semibold text-[#4a6ce6] no-underline">Forgot password?</Link>
                 </div>
                 {message && <StatusMessage tone={messageTone}>{message}</StatusMessage>}
-                <button type="submit" className="mt-3 w-full rounded-2xl bg-[#0d2c49] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#123d61] disabled:cursor-not-allowed disabled:opacity-70" disabled={isLoading} onClick={(event) => {}}>
+                <button type="submit" className="mt-3 w-full rounded-2xl bg-[#0d2c49] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#123d61] disabled:cursor-not-allowed disabled:opacity-70" disabled={isLoading}>
                   {isLoading ? "Please wait..." : "Log in →"}
                 </button>
               </>
@@ -432,7 +424,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
                 <Field label="Nursing School (Optional)" value="" onChange={() => {}} placeholder="Enter your nursing school" icon="🏫" optional />
                 <Field label="Expected Date (Optional)" value="" onChange={() => {}} placeholder="Select a date" icon="📅" optional />
                 {message && <StatusMessage tone={messageTone}>{message}</StatusMessage>}
-                <button type="submit" className="mt-3 w-full rounded-2xl bg-[#12a58b] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0f8d72] disabled:cursor-not-allowed disabled:opacity-70" disabled={isLoading} onClick={(event) => {}}>
+                <button type="submit" className="mt-3 w-full rounded-2xl bg-[#12a58b] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0f8d72] disabled:cursor-not-allowed disabled:opacity-70" disabled={isLoading}>
                   {isLoading ? "Please wait..." : "Sign Up →"}
                 </button>
               </>
@@ -464,7 +456,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
                   </>
                 )}
                 {message && <StatusMessage tone={messageTone}>{message}</StatusMessage>}
-                <button type="submit" className="mt-3 w-full rounded-2xl bg-[#12a58b] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0f8d72] disabled:cursor-not-allowed disabled:opacity-70" disabled={isLoading} onClick={(event) => {}}>
+                <button type="submit" className="mt-3 w-full rounded-2xl bg-[#12a58b] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0f8d72] disabled:cursor-not-allowed disabled:opacity-70" disabled={isLoading}>
                   {isLoading ? "Please wait..." : mode === "forgot" ? "Send Reset Link →" : "Reset Password →"}
                 </button>
               </>
@@ -626,6 +618,8 @@ function Field({
   optional?: boolean;
 }) {
   const id = label.toLowerCase().replaceAll(" ", "-");
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const isPassword = type === "password";
 
   return (
     <div className="space-y-1.5">
@@ -637,13 +631,23 @@ function Field({
         <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#edf4fb] text-[13px] text-[#2d5578]">{icon ?? "•"}</span>
         <input
           id={id}
-          type={type}
+          type={isPassword && passwordVisible ? "text" : type}
           value={value}
           autoComplete={autoComplete}
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
-          className="w-full border-0 bg-transparent text-[12px] text-[#22354e] outline-none placeholder:text-[#9aaec1]"
+          className="min-w-0 flex-1 border-0 bg-transparent text-[12px] text-[#22354e] outline-none placeholder:text-[#9aaec1]"
         />
+        {isPassword && <button
+          type="button"
+          aria-label={passwordVisible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          aria-pressed={passwordVisible}
+          title={passwordVisible ? "Hide password" : "Show password"}
+          onClick={() => setPasswordVisible((visible) => !visible)}
+          className="grid size-8 shrink-0 place-items-center rounded text-[#56718a] transition hover:bg-[#edf4fb] hover:text-[#193d5d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1ba98a]"
+        >
+          {passwordVisible ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+        </button>}
       </div>
       {error && <p className="m-0 text-[10px] font-medium text-[#bb4a53]">{error}</p>}
     </div>

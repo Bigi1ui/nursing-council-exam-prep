@@ -8,7 +8,7 @@ const links = [
   ["Mock exams", "/student/mock-exam", "◷"],
   ["Results", "/student/results/latest", "▤"],
   ["Progress", "/student/progress", "⌁"],
-  ["Mistakes", "/student/mistakes", "↺"],
+  ["Solutions", "/student/solutions", "↺"],
   ["Bookmarks", "/student/bookmarks", "◇"],
   ["Achievements", "/student/achievements", "✦"],
   ["Profile", "/student/profile", "○"],

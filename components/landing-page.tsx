@@ -21,7 +21,7 @@ const platformFeatures = [
   },
   {
     title: "Detailed corrections",
-    text: "Review mistakes with explanations so each missed question becomes a study opportunity.",
+    text: "Review saved solutions and explanations so each missed question becomes a study opportunity.",
   },
   {
     title: "Weak-area practice",
@@ -77,7 +77,7 @@ export function LandingPage() {
             Prepare Smarter. Practice Harder. Pass With Confidence.
           </h1>
           <p className="mt-5 max-w-[600px] text-[14px] leading-7 text-white/82">
-            A professional platform for nursing students to practice past questions, take CBT mock exams, identify weak areas, review mistakes and track their preparation.
+            A professional platform for nursing students to practice past questions, take CBT mock exams, identify weak areas, review saved solutions and track their preparation.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/student/practice" className="primary-button min-h-11">Start Practicing</Link>

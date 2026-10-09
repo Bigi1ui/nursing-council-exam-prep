@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/brand-mark";
 import { savePracticeAnswer, finishPracticeSession, type PracticeSessionData, type SavedPracticeAnswer } from "@/lib/actions/practice";
+import { claimAttemptReviewXp } from "@/lib/actions/gamification";
 import { PageHeading, Panel, Tag } from "@/components/ui";
 
 export function PracticeSession({ session, error }: { session: PracticeSessionData | null; error?: string }) {
@@ -17,6 +18,8 @@ export function PracticeSession({ session, error }: { session: PracticeSessionDa
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [finishRequested, setFinishRequested] = useState(false);
   const [message, setMessage] = useState(error ?? "");
+  const [reviewMessage, setReviewMessage] = useState("");
+  const [isClaimingReviewXp, setIsClaimingReviewXp] = useState(false);
   const finishStarted = useRef(false);
   const finishHandler = useRef<() => Promise<void>>(async () => {});
   const question = session?.questions[currentIndex];
@@ -26,6 +29,10 @@ export function PracticeSession({ session, error }: { session: PracticeSessionDa
   const unansweredCount = Math.max(0, (session?.questions.length ?? 0) - answeredCount);
   const correctCount = answerValues.filter((answer) => answer.selectedOption !== null && answer.selectedOption !== undefined && answer.isCorrect === true).length;
   const pendingSaveCount = Object.keys(pendingSaves).length;
+  const reviewableCount = session?.questions.filter((item) => {
+    const answer = answers[item.id];
+    return answer?.isCorrect === false;
+  }).length ?? 0;
 
   function setQuestionPending(questionId: string, pending: boolean) {
     setPendingSaves((current) => {
@@ -132,6 +139,14 @@ export function PracticeSession({ session, error }: { session: PracticeSessionDa
     setShowSubmit(false);
   }
 
+  async function claimReviewReward() {
+    if (!session || isClaimingReviewXp || reviewMessage) return;
+    setIsClaimingReviewXp(true);
+    const result = await claimAttemptReviewXp(session.id);
+    setIsClaimingReviewXp(false);
+    setReviewMessage("error" in result ? result.error ?? "Could not record this review." : result.xpEarned ? "Review complete: 5 XP earned." : "This review was already claimed or today’s repeatable XP limit was reached.");
+  }
+
   useEffect(() => {
     finishHandler.current = completeSession;
   });
@@ -169,11 +184,12 @@ export function PracticeSession({ session, error }: { session: PracticeSessionDa
   if (complete) {
     return (
       <>
-        <PageHeading eyebrow="Session complete" title="Practice saved" description={`${answeredCount} answered - ${correctCount} correct - ${session.questions.length} questions`} />
+        <PageHeading eyebrow="Session complete" title={session.sessionName} description={`${answeredCount} answered - ${correctCount} correct - ${session.questions.length} questions${session.completedAt ? ` · Completed ${new Date(session.completedAt).toLocaleString()}` : ""}`} />
         <div className="max-w-[850px]">
           <Panel className="mb-4 p-5">
             <p className="m-0 text-[12px] leading-6 text-[#60758a]">Correct answers and explanations are shown below.</p>
-            <div className="mt-4 flex flex-wrap gap-2"><Link href="/student/mistakes" className="primary-button">Review mistakes</Link><Link href="/student/practice" className="secondary-button">Start another session</Link></div>
+            <div className="mt-4 flex flex-wrap gap-2"><Link href={`/student/solutions/${session.id}`} className="primary-button">Open saved solutions</Link><Link href="/student/solutions" className="secondary-button">All solutions</Link><Link href="/student/practice" className="secondary-button">Start another session</Link>{reviewableCount > 0 && <button type="button" onClick={() => void claimReviewReward()} disabled={isClaimingReviewXp || Boolean(reviewMessage)} className="secondary-button disabled:opacity-60">{isClaimingReviewXp ? "Recording review..." : "Mark review complete · +5 XP"}</button>}</div>
+            {reviewMessage && <p role="status" className="mb-0 mt-3 text-[11px] text-[#52766d]">{reviewMessage}</p>}
           </Panel>
           <div className="flex flex-col gap-2">
             {session.questions.map((item, index) => {

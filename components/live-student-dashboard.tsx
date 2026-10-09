@@ -1,17 +1,23 @@
 import Link from "next/link";
 import type { Profile } from "@/lib/auth/session";
 import type { StudentPracticeSummary } from "@/lib/actions/practice";
+import type { StudentGamificationSummary } from "@/lib/actions/gamification";
 import { PageHeading, Panel, ProgressBar, Tag } from "@/components/ui";
+import { AchievementGrid, ReadinessPanel, XpLevelPanel } from "@/components/gamification-panels";
 
 export function LiveStudentDashboard({
   profile,
   summary,
+  gamification,
   error,
+  gamificationError,
   preview = false,
 }: {
   profile: Profile;
   summary: StudentPracticeSummary | null;
+  gamification?: StudentGamificationSummary | null;
   error?: string;
+  gamificationError?: string;
   preview?: boolean;
 }) {
   const displayName = profile.full_name || profile.email;
@@ -43,6 +49,7 @@ export function LiveStudentDashboard({
       </Panel>}
 
       {error && <p role="status" className="mb-3 rounded border border-[#f0dfb8] bg-[#fffbf2] px-4 py-3 text-[11px] text-[#806739]">Practice data is temporarily unavailable: {error}</p>}
+      {gamificationError && !preview && <p role="status" className="mb-3 rounded border border-[#f0dfb8] bg-[#fffbf2] px-4 py-3 text-[11px] text-[#806739]">Study rewards are temporarily unavailable: {gamificationError}</p>}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat, index) => <Panel key={stat.label} className="stat-card-enter p-4" style={{ animationDelay: `${index * 65}ms` }}>
@@ -84,16 +91,13 @@ export function LiveStudentDashboard({
           </div> : <EmptyMessage title="No sessions yet" body="Start a practice session and it will appear here." />}
         </Panel>
 
-        <Panel className="p-5">
-          <p className="eyebrow mb-1">Not connected yet</p>
-          <h2 className="section-title m-0">Preparation indicators</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <UnavailableMetric label="Exam readiness" detail="Requires a defined preparation model" />
-            {preview ? <UnavailableMetric label="Study streak" detail="Student activity is hidden in preview" /> : <StreakMetric current={summary?.studyStreak.currentStreak ?? 0} best={summary?.studyStreak.longestStreak ?? 0} />}
-            <UnavailableMetric label="XP and achievements" detail="Gamification backend is not connected" />
-          </div>
-          <p className="mb-0 mt-4 text-[10px] leading-5 text-[#8291a3]">Exam readiness will represent preparation progress, not the probability of passing the official examination.</p>
-        </Panel>
+        <div className="flex flex-col gap-3">
+          {!preview && gamification && <>
+            <XpLevelPanel summary={gamification} />
+            <ReadinessPanel readiness={gamification.readiness} compact />
+            <div className="border-t border-[#e1e9f0] pt-4"><AchievementGrid summary={gamification} limit={3} /></div>
+          </>}
+        </div>
       </div>
     </>
   );
@@ -105,12 +109,4 @@ function ProfileFact({ label, value }: { label: string; value: string }) {
 
 function EmptyMessage({ title, body }: { title: string; body: string }) {
   return <div className="rounded-md border border-dashed border-[#dfe7ef] bg-[#fafcfd] px-4 py-5"><p className="m-0 text-[11px] font-semibold text-[#536980]">{title}</p><p className="mb-0 mt-1 text-[10px] leading-5 text-[#8291a3]">{body}</p></div>;
-}
-
-function UnavailableMetric({ label, detail }: { label: string; detail: string }) {
-  return <div className="rounded-md bg-[#f5f8fa] p-3"><p className="m-0 text-[10px] font-semibold text-[#5d7287]">{label}</p><p className="mb-0 mt-2 text-[11px] font-bold text-[#9aa6b3]">Not available</p><p className="mb-0 mt-1 text-[9px] leading-4 text-[#8997a8]">{detail}</p></div>;
-}
-
-function StreakMetric({ current, best }: { current: number; best: number }) {
-  return <div className="rounded-md bg-[#edf6f3] p-3"><p className="m-0 text-[10px] font-semibold text-[#52766d]">Study streak</p><p className="mb-0 mt-2 text-[17px] font-bold text-[#1f6559]">{current} {current === 1 ? "day" : "days"}</p><p className="mb-0 mt-1 text-[9px] leading-4 text-[#66857d]">Best: {best} {best === 1 ? "day" : "days"}</p></div>;
 }
