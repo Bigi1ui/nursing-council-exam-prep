@@ -39,14 +39,53 @@ export function MistakesPage({ mistakes, error }: { mistakes: StudentMistake[]; 
   return <>
     <PageHeading eyebrow="Review from saved answers" title="Mistakes to review" description="Only questions you answered incorrectly or left unanswered are listed." action={<Link href="/student/practice?focus=mistakes" className="primary-button">Practice mistakes →</Link>} />
     {error && <ErrorNotice message={error} />}
-    {mistakes.length ? <div className="flex flex-col gap-3">{mistakes.map((mistake) => <Panel key={mistake.questionId} className="p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2"><Tag tone="blue">{mistake.courseName}</Tag><span className="text-[10px] text-[#8492a4]">{mistake.sourceTitle}{mistake.sourceYear ? ` · ${mistake.sourceYear}` : ""}</span></div>
-      <h2 className="mt-4 text-[13px] font-semibold leading-6 text-[#2d435a]">{mistake.prompt}</h2>
-      <p className={`mt-3 rounded p-2.5 text-[11px] ${mistake.selectedOption === null ? "bg-[#f1f3f5] text-[#778595]" : "bg-[#fff0f0] text-[#bf5a60]"}`}>Your previous answer: {mistake.selectedOption === null ? "Unanswered" : mistake.options[mistake.selectedOption] ?? "Unknown option"}</p>
-      <p className="rounded bg-[#eaf8f1] p-2.5 text-[11px] font-semibold text-[#218368]">Correct answer: {mistake.options[mistake.correctOption] ?? "Unavailable"}</p>
-      {mistake.explanation && <p className="mb-0 text-[11px] leading-5 text-[#74859a]">{mistake.explanation}</p>}
-      <p className="mb-0 mt-3 text-[10px] text-[#8b98a7]">Attempted {new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(mistake.attemptedAt))}</p>
-    </Panel>)}</div> : <Panel className="p-5"><EmptyNotice title="No mistakes recorded" body="Answer some questions in practice. Incorrect and unanswered items will be collected here." /></Panel>}
+    {mistakes.length ? <div className="flex flex-col gap-3">{mistakes.map((mistake) => {
+      const wrongAnswerLabel = mistake.selectedOption === null ? "Unanswered" : mistake.options[mistake.selectedOption] ?? "Unknown option";
+      const correctAnswerLabel = mistake.options[mistake.correctOption] ?? "Unavailable";
+
+      return <Panel key={mistake.questionId} className="p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2"><Tag tone="blue">{mistake.courseName}</Tag><span className="text-[10px] text-[#8492a4]">{mistake.sourceTitle}{mistake.sourceYear ? ` · ${mistake.sourceYear}` : ""}</span></div>
+        <h2 className="mt-4 text-[13px] font-semibold leading-6 text-[#2d435a]">{mistake.prompt}</h2>
+
+        <div className="mt-3 flex flex-col gap-1.5">
+          {mistake.options.map((option, optionIndex) => {
+            const isCorrect = mistake.correctOption === optionIndex;
+            const isSelected = mistake.selectedOption === optionIndex;
+            const toneClass = isCorrect
+              ? "border-[#a6d9c0] bg-[#edf8f2] text-[#197c62]"
+              : isSelected
+                ? "border-[#edb4b5] bg-[#fff2f2] text-[#a84c51]"
+                : "border-[#edf1f5] bg-[#f9fbfd] text-[#64788d]";
+
+            return (
+              <div key={`${mistake.questionId}-${optionIndex}`} className={`flex items-start gap-2 rounded border px-3 py-2 text-[11px] ${toneClass}`}>
+                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current text-[9px] font-bold">
+                  {String.fromCharCode(65 + optionIndex)}
+                </span>
+                <span className="flex-1 leading-5">{option}</span>
+                <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide">
+                  {isCorrect ? "Correct" : isSelected ? "Your answer" : ""}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 grid gap-2 text-[11px] md:grid-cols-2">
+          <div className={`rounded p-2.5 ${mistake.selectedOption === null ? "bg-[#f1f3f5] text-[#778595]" : "bg-[#fff0f0] text-[#bf5a60]"}`}>
+            <div className="font-bold uppercase tracking-[.08em] text-[9px] opacity-80">Your previous answer</div>
+            <div className="mt-1">{wrongAnswerLabel}</div>
+          </div>
+          <div className="rounded bg-[#eaf8f1] p-2.5 text-[#218368]">
+            <div className="font-bold uppercase tracking-[.08em] text-[9px] opacity-80">Correct answer</div>
+            <div className="mt-1 font-semibold">{correctAnswerLabel}</div>
+          </div>
+        </div>
+
+        {mistake.explanation && <p className="mb-0 mt-3 text-[11px] leading-5 text-[#74859a]">{mistake.explanation}</p>}
+        <p className="mb-0 mt-3 text-[10px] text-[#8b98a7]">Attempted {new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(mistake.attemptedAt))}</p>
+      </Panel>;
+    })}</div> : <Panel className="p-5"><EmptyNotice title="No mistakes recorded" body="Answer some questions in practice. Incorrect and unanswered items will be collected here." /></Panel>}
   </>;
 }
 
